@@ -7,6 +7,19 @@ from gamelib import Sprite, GameApp, Text
 
 from consts import *
 
+class BridgePattern:
+
+    def delete(self):
+        # fruits = [
+        #     SlowFruit,CurvyFruit,FastFruit,SlideFruit
+        # ]
+
+        # for fruit in fruits:
+        if self.x < -30:
+            self.to_be_deleted = True
+            print('deleted')
+
+
 
 
 class SlowFruit(Sprite):
@@ -17,7 +30,8 @@ class SlowFruit(Sprite):
 
     def update(self):
         self.x -= FRUIT_SLOW_SPEED
-        self.out_of_screen()
+
+        BridgePattern.delete(self)
 
 
 class FastFruit(Sprite):
@@ -29,7 +43,8 @@ class FastFruit(Sprite):
 
     def update(self):
         self.x -= FRUIT_FAST_SPEED
-        self.out_of_screen()
+        BridgePattern.delete(self)
+
 
 
 class SlideFruit(Sprite):
@@ -44,7 +59,8 @@ class SlideFruit(Sprite):
         self.x -= FRUIT_FAST_SPEED
         self.y += self.direction * 5
 
-        self.out_of_screen()
+        BridgePattern.delete(self)
+
 
 
 class CurvyFruit(Sprite):
@@ -59,7 +75,8 @@ class CurvyFruit(Sprite):
         self.t += 1
         self.y += math.sin(self.t*0.08)*10
 
-        self.out_of_screen()
+        BridgePattern.delete(self)
+
 
 
 

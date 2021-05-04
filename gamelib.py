@@ -92,9 +92,6 @@ class Sprite(GameCanvasElement):
             self.x, 
             self.y,
             image=self.photo_image)
-    def out_of_screen(self):
-        if self.x < -30:
-            self.to_be_deleted = True
 
 
 
