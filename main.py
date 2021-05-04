@@ -7,35 +7,35 @@ from gamelib import Sprite, GameApp, Text
 
 from consts import *
 
+
+
 class SlowFruit(Sprite):
     def __init__(self, app, x, y):
         super().__init__(app, 'images/apple.png', x, y)
-
+        self.name = 'Slow'
         self.app = app
 
     def update(self):
         self.x -= FRUIT_SLOW_SPEED
-
-        if self.x < -30:
-            self.to_be_deleted = True
+        self.out_of_screen()
 
 
 class FastFruit(Sprite):
     def __init__(self, app, x, y):
         super().__init__(app, 'images/banana.png', x, y)
+        self.name = 'Fast'
 
         self.app = app
 
     def update(self):
         self.x -= FRUIT_FAST_SPEED
-
-        if self.x < -30:
-            self.to_be_deleted = True
+        self.out_of_screen()
 
 
 class SlideFruit(Sprite):
     def __init__(self, app, x, y):
         super().__init__(app, 'images/cherry.png', x, y)
+        self.name = 'Slide'
 
         self.app = app
         self.direction = randint(0,1)*2 - 1
@@ -44,14 +44,13 @@ class SlideFruit(Sprite):
         self.x -= FRUIT_FAST_SPEED
         self.y += self.direction * 5
 
-        if self.x < -30:
-            self.to_be_deleted = True
+        self.out_of_screen()
 
 
 class CurvyFruit(Sprite):
     def __init__(self, app, x, y):
         super().__init__(app, 'images/pear.png', x, y)
-
+        self.name = 'Curvy'
         self.app = app
         self.t = randint(0,360) * 2 * math.pi / 360
 
@@ -60,8 +59,50 @@ class CurvyFruit(Sprite):
         self.t += 1
         self.y += math.sin(self.t*0.08)*10
 
-        if self.x < -30:
-            self.to_be_deleted = True
+        self.out_of_screen()
+
+
+
+class NormalCatState:
+    def __init__(self, cat):
+        self.cat = cat
+
+    def update(self):
+        cat = self.cat
+        if cat.direction == CAT_UP:
+            cat.y -= CAT_SPEED
+            if not cat.y >= CAT_MARGIN:
+                cat.y = CANVAS_HEIGHT
+
+
+
+        elif cat.direction == CAT_DOWN:
+            cat.y += CAT_SPEED
+            if not cat.y <= CANVAS_HEIGHT - CAT_MARGIN:
+                cat.y = 0
+
+
+
+class BerserkCatState:
+    def __init__(self, cat):
+        self.cat = cat
+        self.counter = 0
+
+    def update(self):
+        cat = self.cat
+        if cat.direction == CAT_UP:
+            cat.y -= CAT_SPEED * 3
+            # if cat.y >= CAT_MARGIN:
+
+        elif cat.direction == CAT_DOWN:
+            cat.y += CAT_SPEED * 3
+            # if cat.y <= CANVAS_HEIGHT - CAT_MARGIN:
+            #     pass
+            # else:
+            #     cat.y = 0
+        self.counter +=1
+        if self.counter > 100:
+            cat.state = NormalCatState(cat)
 
 
 class Cat(Sprite):
@@ -70,20 +111,25 @@ class Cat(Sprite):
 
         self.app = app
         self.direction = None
+        self.state = NormalCatState(self)
+
+    def get_berserk(self):
+        self.state = BerserkCatState(self)
 
     def update(self):
-        if self.direction == CAT_UP:
-            if self.y >= CAT_MARGIN:
-                self.y -= CAT_SPEED
-        elif self.direction == CAT_DOWN:
-            if self.y <= CANVAS_HEIGHT - CAT_MARGIN:
-                self.y += CAT_SPEED
+        self.state.update()
+
 
     def check_collision(self, fruit):
         if self.distance_to(fruit) <= CAT_CATCH_DISTANCE:
             fruit.to_be_deleted = True
-            self.app.score += 1
-            self.app.update_score()
+            if fruit.name == 'Curvy':
+                self.app.score += 2
+                self.app.update_score()
+            else:
+                self.app.score += 1
+                self.app.update_score()
+
 
 
 class CatGame(GameApp):
@@ -94,6 +140,7 @@ class CatGame(GameApp):
         self.score = 0
         self.score_text = Text(self, 'Score: 0', 100, 40)
         self.fruits = []
+
 
     def update_score(self):
         self.score_text.set_text('Score: ' + str(self.score))
@@ -129,6 +176,10 @@ class CatGame(GameApp):
         return new_list
 
     def post_update(self):
+        if self.score %20 == 0 and self.score > 0 :
+            self.cat.get_berserk()
+
+
         self.process_collisions()
 
         self.random_fruits()
